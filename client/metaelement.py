@@ -282,7 +282,7 @@ class MetaElement(object):
         elif isinstance(date, basestring):
             rfc_date = utils.rfc3339_to_date(date)
             if rfc_date is not False:
-                return rfc_date
+                return date
 
         raise IllegalAttributeValueError(attribute_name, 
                     date, 
