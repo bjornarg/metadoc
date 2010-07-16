@@ -247,6 +247,24 @@
                 #REQUIRED
       volume    CDATA    #REQUIRED>
 <!-- ########################################################## -->
+<!--        SPODtest                                            -->
+<!-- ########################################################## -->
+<!ELEMENT spodtest (testcase+)>
+<!ELEMENT testcase EMPTY>
+<!ATTLIST testcase
+      to                    CDATA     #REQUIRED
+      total_size            CDATA     #REQUIRED
+      transfer_time         CDATA     #REQUIRED
+      num_files             CDATA     #REQUIRED
+      command_type          CDATA     #REQUIRED
+      date                  CDATA     #REQUIRED
+      id                    ID        #REQUIRED
+      fileset_name          CDATA     #IMPLIED
+      compression           CDATA     #IMPLIED
+      compression_level     CDATA     #IMPLIED
+      encryption            CDATA     #IMPLIED>
+
+<!-- ########################################################## -->
 <!-- Receipts for uploaded data                                 -->
 <!--                                                            -->
 <!-- Both success and error will be returned from the sever     -->

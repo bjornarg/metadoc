@@ -32,6 +32,7 @@ Usage
     -e                      Send event data
     -c                      Send config data
     -s                      Send software data
+    -t                      Send SPODTest data
     -u                      Fetch user data
     -a                      Fetch allocation data
     -p                      Fetch project data
@@ -68,6 +69,7 @@ from cacher import Cacher
 from events.definition import Events
 from configuration.definition import Configuration
 from software.definition import Software
+from spodtest.definition import SPODTest
 
 # Classes that retrieve information from server
 from allocations.definition import Allocations
@@ -306,7 +308,7 @@ def send_element(element, conf, send_cache, dryrun, verbose, cache_only):
 
 def main():
     """Main execution. """
-    optstr = "hvqecaspunl:"
+    optstr = "hvqectaspunl:"
     optlist = ['help', 'dry-run', 'loglevel=', 'no-cache', 
                 'send-all', 'fetch-all', 'all']
     SCRIPT_PATH = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -316,7 +318,7 @@ def main():
     dryrun = False
     send_cache = True
     # These lists contain all elements that might be sent or fetched.
-    possible_send_elements = [Events, Configuration, Software,]
+    possible_send_elements = [Events, Configuration, Software,SPODTest]
     possible_fetch_elements = [Allocations, Users, Projects,]
     # Information to send
     send_elements = []
@@ -354,6 +356,8 @@ def main():
             send_elements.append(Configuration)
         elif opt == '-s':
             send_elements.append(Software)
+        elif opt == '-t':
+            send_elements.append(SPODTest)
         elif opt == '-u':
             fetch_elements.append(Users)
         elif opt == '-a':
