@@ -173,12 +173,17 @@ class MetaDoc:
                                                         element.xml_tag_name))
                             sys.stderr.write("Please check log file for "
                                 "more information.")
-                        err_str = ("Error %d on \"%s\" element. Element "
+                        if element is not None:
+                            err_str = ("Error %d on \"%s\" element. Element "
                                     "attributes: %s") % (
                                         r_code,
                                         element.xml_tag_name,
                                         element.attributes
                                         )
+                        else:
+                            err_str = ("Error %d on element with id %s.") % (
+                                            r_code, r_entry.attrib.get("id")
+                                            )
                         if r_entry.attrib.get("note"):
                             err_str = "%s    \nError note: %s" % (err_str, 
                                             r_entry.attrib.get("note"))
