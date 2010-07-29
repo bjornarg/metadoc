@@ -16,11 +16,10 @@
 # along with MetaDoc.  If not, see <http://www.gnu.org/licenses/>.
 # The API interface
 
+import yaml
+
 from abstract import MetaOutput
 from configuration.entries import ConfigEntry
-#### Testing Purposes ####
-import random
-#### Testing Purposes end ####
 
 class SiteConfiguration(MetaOutput):
     def populate(self):
@@ -29,13 +28,10 @@ class SiteConfiguration(MetaOutput):
         Customize this function to fit to your site.
 
         """
-        a = [
-                ('cores', 'count'), 
-                ('nodes', 'count'),
-                ('disk', 'TB'),
-                ('swap', 'GB'),
-                ('memory', 'MB'),
-            ]
-        for i in xrange(5):
-            t = random.randint(0,len(a)-1)
-            self.items.append(ConfigEntry(a[t][0], a[t][1], random.randint(0,1000)))
+        f = open("config_setup.yaml")
+        config_setup = yaml.load(f.read())
+        f.close()
+        for i in config_setup.keys():
+            self.items.append(
+                ConfigEntry(i, config_setup[i])
+            )
