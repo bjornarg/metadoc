@@ -241,9 +241,14 @@
 <!ELEMENT config_entry EMPTY>
 <!ATTLIST config_entry
       id        ID    #REQUIRED
-      element    (cores|nodes|disk|swap|memory)
-                #REQUIRED
-      metric    (count|MB|GB|TB)
+      element    (cores|nodes|disk|swap|memory|system|type|
+                  cpu_type|theoretical_peak|opsys|
+                  scheduling_system|total_temp_shared|
+                  total_home_dir|addressable_mem|
+                  default_home_dir_size|max_job_runtime|
+                  max_cpu_per_job|parallel_jobs|serial_jobs|
+                  large_io_jobs|memory_per_node|mpi_applications|
+                  openmp_applications)
                 #REQUIRED
       volume    CDATA    #REQUIRED>
 <!-- ########################################################## -->
