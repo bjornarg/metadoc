@@ -37,7 +37,8 @@
       events?,
       software?,
       config?,
-      receipt?)>
+      receipt?,
+      spodtest?)>
 
 <!-- version:    the verion of MetaDoc being used.              -->
 <!-- site_name: the shortname of the site                       -->
@@ -267,7 +268,8 @@
       fileset_name          CDATA     #IMPLIED
       compression           CDATA     #IMPLIED
       compression_level     CDATA     #IMPLIED
-      encryption            CDATA     #IMPLIED>
+      encryption            CDATA     #IMPLIED
+      fileset               CDATA     #IMPLIED>
 
 <!-- ########################################################## -->
 <!-- Receipts for uploaded data                                 -->
