@@ -1,0 +1,14 @@
+\section{Dependencies}
+
+\subsection{lxml}
+The MetaDoc client itself is only dependent on the \verb@lxml@ library outside
+the Python standard library. 
+
+The client may run without \verb@lxml@, in which case it will fall back to the
+\verb@xml.etree.ElementTree@ library, which is a part of the Python standard
+library. However, this will remove the \gls{dtd} validation feature. It will
+also cause a slight performance hit to the client.
+
+\subsection{yaml}
+The custom example for site configuration uses the \verb@yaml@ library for
+Python. If this is unavailable, this custom example will not work.
