@@ -17,7 +17,10 @@
 # The API interface
 
 import logging
-import lxml.etree
+try:
+    from lxml import etree
+except ImportError:
+    import xml.etree.ElementTree as etree
 
 import utils
 import datetime
@@ -85,12 +88,12 @@ class MetaElement(object):
         return self.attributes
 
     def get_xml_element(self, with_id=True):
-        """Convert element into lxml.etree.Element.
+        """Convert element into etree.Element.
 
         @param with_id: Indicates whether attribute B{id} of element and sub 
                         elements should be included.
         @type with_id: bool
-        @return: lxml.etree.Element or None if unable to convert.
+        @return: etree.Element or None if unable to convert.
         
         """
         temp_id = False
@@ -110,7 +113,7 @@ class MetaElement(object):
                             (self.get_name(), type(self.attributes)))
                 return None
         try:
-            element = lxml.etree.Element(self.get_name(), **self.attributes)
+            element = etree.Element(self.get_name(), **self.attributes)
         except Exception, e:
             # FIXME - What errors can we produce? Should specify error.
             logging.error(("Unable to create XML element from "
@@ -337,7 +340,7 @@ class MetaElement(object):
 
     @staticmethod
     def from_xml_element(xml_element, element_class):
-        """ Creates a MetaElement from an lxml.etree.Element instance. 
+        """ Creates a MetaElement from an etree.Element instance. 
         
         Recursively checks for sub-elements from legal sub-classes.
 

@@ -14,10 +14,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetaDoc.  If not, see <http://www.gnu.org/licenses/>.
+lxml = False
 
 import logging
 import os
-import lxml.etree
+try:
+    from lxml import etree
+except ImportError:
+    import xml.etree.ElementTree as etree
+    from xml.parsers.expat import ExpatError
+else:
+    lxml = True
 import sys
 
 class Cacher(object):
@@ -59,19 +66,27 @@ class Cacher(object):
     def get_cache(self):
         """ 
         
-        @return: lxml.etree.Element of self.element_type, or None if 
+        @return: etree.Element of self.element_type, or None if 
                     cache does not exist.
         
         """
         cache_string = self._get_cache_string()
         if not cache_string:
             return None
-        try:
-            element = lxml.etree.fromstring(cache_string)
-        except lxml.etree.XMLSyntaxError:
-            logging.error("Cached file \"%s\" contains invalid XML." % 
-                            self.file_path)
-            return None
+        if lxml:
+            try:
+                element = etree.fromstring(cache_string)
+            except etree.XMLSyntaxError:
+                logging.error("Cached file \"%s\" contains invalid XML." % 
+                                self.file_path)
+                return None
+        else:
+            try:
+                element = etree.fromstring(cache_string)
+            except ExpatError:
+                logging.error("Cached file \"%s\" contains invalid XML." % 
+                                self.file_path)
+                return None
         return element.find(self.element_type)
 
     def remove_cache(self):

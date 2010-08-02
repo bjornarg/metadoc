@@ -47,13 +47,21 @@ Usage
     --fetch-all             Fetches all data, equal to -uap.
 
 """
+lxml = False
+
 import ConfigParser
 import logging
 import logging.handlers
 import sys
 import os
 import getopt
-import lxml.etree
+try:
+    from lxml import etree
+except ImportError:
+    import xml.etree.ElementTree as etree
+    from xml.parsers.expat import ExpatError
+else:
+    lxml = True
 import urllib2
 import StringIO
 import datetime
@@ -421,9 +429,6 @@ def main():
 
     # ready for main processing.
     logging.info("Running mapi.py with handles %s." % " ".join(sys.argv[1:]))
-    # Loading DTD for validation
-    dtd_file = open("%s/%s" % (SCRIPT_PATH, "MetaDoc.dtd"), "r")
-    dtd = lxml.etree.DTD(dtd_file)
 
     for element in send_elements:
         if element in possible_send_elements:
@@ -461,19 +466,33 @@ def main():
                 if verbose:
                     print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
                     print xml_data
-                try:
-                    return_data = lxml.etree.fromstring(xml_data)
-                except lxml.etree.XMLSyntaxError, e:
-                    logging.error(("Error parsing XML document from server: "
-                                        "%s") % e)
-                    sys.stderr.write(("Got response from server at url \"%s\", "
-                                    "but unable to parse. Error message: %s") % 
-                                    (url, e))
+                xml_parse_error = False
+                if lxml:
+                    try:
+                        return_data = etree.fromstring(xml_data)
+                    except etree.XMLSyntaxError, e:
+                        logging.error(("Error parsing XML document from server: "
+                                            "%s") % e)
+                        sys.stderr.write(("Got response from server at url \"%s\", "
+                                        "but unable to parse. Error message: %s") % 
+                                        (url, e))
+                        xml_parse_error = True
                 else:
+                    try:
+                        return_data = etree.fromstring(xml_data)
+                    except ExpatError, e:
+                        logging.error(("Error parsing XML document from server: "
+                                            "%s") % e)
+                        sys.stderr.write(("Got response from server at url \"%s\", "
+                                        "but unable to parse. Error message: %s") % 
+                                        (url, e))
+                        xml_parse_error = True
+                    
+                if not xml_parse_error:
                     # Check for valid according to DTD:
                     utils.check_version(return_data.attrib.get("version"))
-                    valid = dtd.validate(return_data)
-                    if valid:
+                    dtd_validation = utils.dtd_validate(return_data)
+                    if len(dtd_validation) == 0:
                         logging.debug(("Data returned from \"%s\" validated to "
                                         "DTD.") % url)
                         found_elements = return_data.findall(
@@ -495,7 +514,7 @@ def main():
                         sys.stderr.write("Logging with \"debug\" will show "
                                     "validation errors.")
                         dtd_errors = ""
-                        for error in dtd.error_log.filter_from_errors():
+                        for error in dtd_validation:
                             dtd_errors = "%s\n%s" % (dtd_errors, error)
                         logging.debug("XML DTD errors: %s" % dtd_errors)
             else:

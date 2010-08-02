@@ -15,9 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with MetaDoc.  If not, see <http://www.gnu.org/licenses/>.
 # The API interface
+lxml = False
 
 import logging
-import lxml.etree
+try:
+    from lxml import etree
+except ImportError:
+    import xml.etree.ElementTree as etree
+    from xml.parsers.expat import ExpatError
+else:
+    lxml = True
 import version
 import sys
 
@@ -39,9 +46,9 @@ class MetaDoc:
         self.metaelements = []
 
     def _create_root(self):
-        """Creates an lxml.etree.Element used as root for the document. """
+        """Creates an etree.Element used as root for the document. """
         self.root = None
-        self.root = lxml.etree.Element("MetaDoc",
+        self.root = etree.Element("MetaDoc",
                                         version=version.__version__,
                                         site_name=self.site_name)
 
@@ -79,10 +86,16 @@ class MetaDoc:
             self.root.append(me.get_xml_element(with_id))
 
 
-        return lxml.etree.tostring(self.root, 
+        # xml_declaration and pretty_prity are not available in
+        # ElementTree.
+        if lxml:
+            return etree.tostring(self.root, 
                 encoding='utf-8', 
                 pretty_print=pretty,
                 xml_declaration=True)
+        else:
+            return etree.tostring(self.root, 
+                encoding='utf-8') 
 
     def find_id(self, locate_id):
         """Attempts to locate the element with a given ID inside the document. 
@@ -145,60 +158,66 @@ class MetaDoc:
         @type xml_response: String
 
         """
-        try:
-            response = lxml.etree.fromstring(xml_response)
-        except lxml.etree.XMLSyntaxError, e:
-            logging.error("Error parsing server XML response: %s" % e)
-            raise InvalidXMLResponseError()
+        if lxml:
+            try:
+                response = etree.fromstring(xml_response)
+            except etree.XMLSyntaxError, e:
+                logging.error("Error parsing server XML response: %s" % e)
+                raise InvalidXMLResponseError()
         else:
-            receipt = response.find("receipt")
-            if receipt is not None:
-                r_entries = receipt.findall("r_entry")
-                for r_entry in r_entries:
-                    element = self.find_id(r_entry.attrib.get("id"))
-                    r_code = r_entry.attrib.get("code")
-                    try:
-                        r_code = int(r_code)
-                    except ValueError, e:
-                        logging.error(("Recieved a non-integer error code from "
-                            "server: \"%s\".") % str(r_code))
-                        continue
-                    if not (r_code >= 1000 and r_code < 2000):
-                        if r_code < 5000:
-                            # Got an error that will NOT be fixed by 
-                            # resending element. No point in caching.
-                            self.remove_element(element)
-                            sys.stderr.write(("Received critical error %d on "
-                                "element \"%s\".\n") % (r_code, 
-                                                        element.xml_tag_name))
-                            sys.stderr.write("Please check log file for "
-                                "more information.")
-                        if element is not None:
-                            err_str = ("Error %d on \"%s\" element. Element "
-                                    "attributes: %s") % (
-                                        r_code,
-                                        element.xml_tag_name,
-                                        element.attributes
-                                        )
-                        else:
-                            err_str = ("Error %d on element with id %s.") % (
-                                            r_code, r_entry.attrib.get("id")
-                                            )
-                        if r_entry.attrib.get("note"):
-                            err_str = "%s    \nError note: %s" % (err_str, 
-                                            r_entry.attrib.get("note"))
-                        if r_entry.text:
-                            err_str = "%s    \nError message:\n%s" % (err_str, 
-                                            r_entry.text)
-                        logging.error(err_str)
-                    else:
-                        info_str = ("Element \"%s\" successfully added. "
-                                "(Attributes: %s)") % (element.xml_tag_name, 
-                                                        element.attributes)
-                        logging.info(info_str)
+            try:
+                response = etree.fromstring(xml_response)
+            except ExpatError, e:
+                logging.error("Error parsing server XML response: %s" % e)
+                raise InvalidXMLResponseError()
+        receipt = response.find("receipt")
+        if receipt is not None:
+            r_entries = receipt.findall("r_entry")
+            for r_entry in r_entries:
+                element = self.find_id(r_entry.attrib.get("id"))
+                r_code = r_entry.attrib.get("code")
+                try:
+                    r_code = int(r_code)
+                except ValueError, e:
+                    logging.error(("Recieved a non-integer error code from "
+                        "server: \"%s\".") % str(r_code))
+                    continue
+                if not (r_code >= 1000 and r_code < 2000):
+                    if r_code < 5000:
+                        # Got an error that will NOT be fixed by 
+                        # resending element. No point in caching.
                         self.remove_element(element)
-            else:
-                raise NoReceiptReturnedError()
+                        sys.stderr.write(("Received critical error %d on "
+                            "element \"%s\".\n") % (r_code, 
+                                                    element.xml_tag_name))
+                        sys.stderr.write("Please check log file for "
+                            "more information.")
+                    if element is not None:
+                        err_str = ("Error %d on \"%s\" element. Element "
+                                "attributes: %s") % (
+                                    r_code,
+                                    element.xml_tag_name,
+                                    element.attributes
+                                    )
+                    else:
+                        err_str = ("Error %d on element with id %s.") % (
+                                        r_code, r_entry.attrib.get("id")
+                                        )
+                    if r_entry.attrib.get("note"):
+                        err_str = "%s    \nError note: %s" % (err_str, 
+                                        r_entry.attrib.get("note"))
+                    if r_entry.text:
+                        err_str = "%s    \nError message:\n%s" % (err_str, 
+                                        r_entry.text)
+                    logging.error(err_str)
+                else:
+                    info_str = ("Element \"%s\" successfully added. "
+                            "(Attributes: %s)") % (element.xml_tag_name, 
+                                                    element.attributes)
+                    logging.info(info_str)
+                    self.remove_element(element)
+        else:
+            raise NoReceiptReturnedError()
         sub_element_count = 0
         for me in self.metaelements:
             sub_element_count = sub_element_count + len(me.sub_elements)
