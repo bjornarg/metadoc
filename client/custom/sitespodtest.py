@@ -1,10 +1,14 @@
 from abstract import MetaOutput
 from spodtest.entries import TestCaseEntry
 from lxml import etree
+import os
 
 class SiteSPODTest(MetaOutput):
     def populate(self):
-        xmldoc = open('/tmp/xmldoc.xml', 'r')
+        try:
+            xmldoc = open('/tmp/xmldoc.xml', 'r')
+        except:
+            return
         xml = etree.parse(xmldoc)
         testcases = xml.findall('testcase')
         for tc in testcases:
@@ -19,5 +23,7 @@ class SiteSPODTest(MetaOutput):
                     fileset_name=tca.get('fileset_name', None),
                     compression=tca.get('compression', None),
                     compression_level=tca.get('compression_level', None),
-                    encryption=tca.get('encryption', None),                    
+                    encryption=tca.get('encryption', None),
+                    fileset=tca.get("fileset", None),
                 ))
+        os.remove('/tmp/xmldoc.xml')

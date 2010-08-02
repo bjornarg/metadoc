@@ -5,7 +5,7 @@ class TestCaseEntry(metaelement.MetaElement):
     xml_tag_name = "testcase"
     def __init__(self, to, total_size, transfer_time, num_files, command_type, 
                     date, fileset_name=None, compression=None, 
-                    compression_level=None, encryption=None):
+                    compression_level=None, encryption=None, fileset=None):
             u = UniqueID()
             self.attributes = {
                 'to': to,
@@ -24,6 +24,8 @@ class TestCaseEntry(metaelement.MetaElement):
                 self.attributes['compression_level'] = compression_level
             if encryption is not None:
                 self.attributes['encryption'] = encryption
+            if fileset is not None:
+                self.attributes['fileset'] = fileset
 
             super(TestCaseEntry, self).__init__(TestCaseEntry.xml_tag_name, 
                                                 self.attributes)
