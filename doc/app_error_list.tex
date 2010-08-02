@@ -19,7 +19,11 @@
         \hline
         2000 & Error with the \gls{xml} data & \\
         \hline
-        2001 & Missing attribute & Missing attribute should be returned as a note. \\
+        2001 & Missing attribute & Missing attribute should be returned as a
+        note. \\
+        \hline
+        2002 & Attribute value error & The attribute contained an invalid
+        value. \\
         \hline
         \hline
         \multicolumn{3}{|c|}{\textbf{Non-critical errors}} \\
@@ -29,10 +33,20 @@
         5001 & MySQL database error & Note should contain the MySQL error code, 
         and the message the MySQL error message \\
         \hline
+        5002 & Database inconsistency error & There is some inconsistency in
+        the database that makes it impossible to process the request. This must
+        be fixed on the server before the request can be properly processed. \\
+        \hline
         \hline
         6001 & Another element error & Another element in the same set has been
         rejected, and this type of set will not accept any elements if any
         element contains an error\\
+        \hline
+        \hline
+        7000 & SPODTest error & \\
+        \hline
+        7001 & No such host error & A testcase was received where the target
+        host could not be identified \\
         \hline
     \end{tabular}
     \label{tbl:server_return_codes}
