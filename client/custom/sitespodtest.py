@@ -1,6 +1,9 @@
 from abstract import MetaOutput
 from spodtest.entries import TestCaseEntry
-from lxml import etree
+try:
+    from lxml import etree
+except ImportError:
+    import xml.etree.ElementTree as etree
 import os
 
 class SiteSPODTest(MetaOutput):
