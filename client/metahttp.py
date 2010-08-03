@@ -48,10 +48,14 @@ class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
         return self.do_open(self.get_conncetion, req)
 
     def get_conncetion(self, host, timeout=300):
-        """Get the connection. """
+        """Get the connection. 
+        
+        @return: L{HTTPSAuthServerConnection}
+
+        """
         SCRIPT_PATH = os.path.abspath(os.path.dirname(sys.argv[0]))
         conf = ConfigParser.ConfigParser()
-        conf.read("%s/%s" % (SCRIPT_PATH, "metadoc.conf"))
+        conf.read(os.path.join(SCRIPT_PATH, "metadoc.conf"))
         v = conf.items("MetaDoc")
         v = dict(v)
         ca_certs = v.get("ca_certs")
