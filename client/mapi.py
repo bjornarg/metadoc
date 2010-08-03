@@ -216,58 +216,58 @@ def send_element(element, conf, send_cache, dryrun, verbose, cache_only):
         logging.info(("No data to send for \"%s\".") % element.xml_tag_name)
 
 def fetch_element(element, conf, verbose):
-        url = "%s%s" % (conf['host'], element.url)
-        if bool_conf_value(conf.get('trailing_slash',"")):
-            url = "%s/" % url
+    url = "%s%s" % (conf['host'], element.url)
+    if bool_conf_value(conf.get('trailing_slash',"")):
+        url = "%s/" % url
+    if verbose:
+        print "-" * 70
+        print "Connecting to host: %s" % url
+        print "Using key: %s" % conf['key']
+        print "Using certificate: %s" % conf['cert']
+        print "-" * 70
+    server_response = utils.send_document(url, conf['key'], conf['cert'])
+    if server_response is False:
+        sys.stderr.write("Unable to fetch data from \"%s\".\n" %
+                            url)
+        sys.stderr.write("See log for more information.")
+    else:
         if verbose:
-            print "-" * 70
-            print "Connecting to host: %s" % url
-            print "Using key: %s" % conf['key']
-            print "Using certificate: %s" % conf['cert']
-            print "-" * 70
-        server_response = utils.send_document(url, conf['key'], conf['cert'])
-        if server_response is False:
-            sys.stderr.write("Unable to fetch data from \"%s\".\n" %
-                                url)
-            sys.stderr.write("See log for more information.")
+            print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
+            print server_response
+        data = xmlutils.element_from_string(server_response)
+        if data is False:
+            sys.stderr.write(("Got response from server at url \"%s\", "
+                            "but unable to parse. Error message: %s") % 
+                            (url, e))
         else:
-            if verbose:
-                print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
-                print server_response
-            data = xmlutils.element_from_string(server_response)
-            if data is False:
-                sys.stderr.write(("Got response from server at url \"%s\", "
-                                "but unable to parse. Error message: %s") % 
-                                (url, e))
+            # Check for valid according to DTD:
+            utils.check_version(data.attrib.get("version"))
+            dtd_validation = xmlutils.dtd_validate(data)
+            if len(dtd_validation) == 0:
+                logging.debug(("Data returned from \"%s\" validated to "
+                                "DTD.") % url)
+                found_elements = data.findall(
+                                element.xml_tag_name
+                                )
+                sub_elements = []
+                for found_element in found_elements:
+                    sub_elements.append(MetaElement.from_xml_element(
+                                        found_element, element)
+                                        )
+                element.update_handler(sub_elements).process()
             else:
-                # Check for valid according to DTD:
-                utils.check_version(data.attrib.get("version"))
-                dtd_validation = xmlutils.dtd_validate(data)
-                if len(dtd_validation) == 0:
-                    logging.debug(("Data returned from \"%s\" validated to "
-                                    "DTD.") % url)
-                    found_elements = data.findall(
-                                    element.xml_tag_name
-                                    )
-                    sub_elements = []
-                    for found_element in found_elements:
-                        sub_elements.append(MetaElement.from_xml_element(
-                                            found_element, element)
-                                            )
-                    element.update_handler(sub_elements).process()
-                else:
-                    logging.error(("XML recieved for \"%s\" did not "
-                                "contain valid XML according to DTD.") % 
-                                element.xml_tag_name)
-                    sys.stderr.write(("Received XML document from server "
-                                "on url \"%s\", but did not validate "
-                                "against DTD.\n") % url)
-                    sys.stderr.write("Logging with \"debug\" will show "
-                                "validation errors.")
-                    dtd_errors = ""
-                    for error in dtd_validation:
-                        dtd_errors = "%s\n%s" % (dtd_errors, error)
-                    logging.debug("XML DTD errors: %s" % dtd_errors)
+                logging.error(("XML recieved for \"%s\" did not "
+                            "contain valid XML according to DTD.") % 
+                            element.xml_tag_name)
+                sys.stderr.write(("Received XML document from server "
+                            "on url \"%s\", but did not validate "
+                            "against DTD.\n") % url)
+                sys.stderr.write("Logging with \"debug\" will show "
+                            "validation errors.")
+                dtd_errors = ""
+                for error in dtd_validation:
+                    dtd_errors = "%s\n%s" % (dtd_errors, error)
+                logging.debug("XML DTD errors: %s" % dtd_errors)
 
 
 def main():
