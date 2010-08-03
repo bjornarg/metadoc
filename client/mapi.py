@@ -69,6 +69,8 @@ import datetime
 import metahttp 
 import metadoc
 import utils
+import xmlutils
+from metaconfig import write_sample_config, test_config, bool_conf_value
 from metadoc import MetaDoc
 from metaelement import MetaElement
 from cacher import Cacher
@@ -85,87 +87,6 @@ from users.definition import Users
 from projects.definition import Projects
 
 
-def write_sample_config():
-    """Creates a default configuration file.
-    Used if the config file is missing to create a base to work from.
-
-    """
-    f = open("metadoc.conf", "w")
-    f.write("# This is a sample configuration file for MetaDoc\n")
-    f.write("# It uses Python's ConfigParser, see\n")
-    f.write("#\thttp://docs.python.org/library/configparser.html\n")
-    f.write("# for details.\n")
-    f.write("\n# The standard MetaDoc section\n")
-    f.write("[MetaDoc]\n")
-    f.write("host  = https://localhost/metadoc_api/\n")
-    f.write("key   = userkey.pem\n")
-    f.write("cert  = usercert.pem\n")
-    f.write("trailing_slash = True\n")
-    f.write("valid = False\n")
-    f.write("site_name = SITENAME\n")
-    f.write("ca_certs = ca_certs.pem\n")
-    f.close()
-
-def testConfig(vals):
-    """Tests configuration file to see that it contains the necessary 
-    information to run the script.
-
-    @param vals: Dictionary of configuration values.
-    @type vals: dict
-    @return: bool indicating proper configuration.
-
-    """
-    if 'valid' in vals:
-        if vals['valid'].lower() == "false" or vals['valid'].lower() == "no":
-            print "The config is not valid. "
-            print ("You need to explicitly set the "
-                    "config-switch 'valid' to 'True'.")
-            print "You can also remove the switch completely from the file"
-            print ""
-            print ("It is included as a fail-safe to stop "
-                    "auto-configured programs from running.")
-            logging.critical("Configuration file not set to valid. "
-                    "Please make sure configuration file is correct and "
-                    "set 'valid' to 'True'.")
-            return False
-    if 'host' not in vals or vals['host'] == "":
-        print "Need a valid host. Aborting"
-        logging.critical("Configuration file missing 'host'.")
-        return False
-    if 'cert' not in vals or vals['cert'] == "":
-        print "Need path to the certificate to use for AuthN/AuthZ. Aborting"
-        logging.critical("Configuration file missing path to certificate.")
-        return False
-    else:
-        if not os.access(vals['cert'], os.R_OK):
-            print "cert file is not a file or not readable for user."
-            logging.critical("cert file is not a file or not readable "
-                        "for user")
-            return False
-    if 'key' not in vals or vals['key'] == "":
-        print "Need path to the privatekey to use for AuthN/AuthZ. Aborting"
-        logging.critical("Configuration file missing path to private key.")
-        return False
-    else:
-        if not os.access(vals['key'], os.R_OK):
-            print "key file is not a file or not readable for user."
-            logging.critical("key file is not a file or not readable "
-                        "for user")
-            return False
-    if 'site_name' not in vals or vals['site_name'] == "":
-        print "Missing site name in configuration file. Aborting"
-        logging.critical("Configuration file missing site name.")
-        return False
-    if 'ca_certs' not in vals or vals['ca_certs'] == "":
-        print "Missing ca_certs in configuration. Aborting."
-        logging.critical("Missing ca_certs in configuration.")
-    else:
-        if not os.access(vals['ca_certs'], os.R_OK):
-            print "ca_certs file is not a file or not readable for user."
-            logging.critical("ca_certs file is not a file or not readable "
-                        "for user")
-            return False
-    return True
 
 def get_element_processor(element, send_cache, verbose, dryrun):
     """Gets an instance of element that contains cached data, depending on 
@@ -192,16 +113,18 @@ def get_element_processor(element, send_cache, verbose, dryrun):
         cached_data = c.get_cache()
         if cached_data is not None:
             if element.resend_cache:
-                element_processor = element.from_xml_element(cached_data, element)
+                element_processor = element.from_xml_element(cached_data, 
+                                                                element)
             else:
                 logging.info(("Found cached data for \"%s\", but element "
                     "type declares not to resend this cache. "
-                    "Cache removed.") % element.xml_tag_name)
+                    "Removing cache.") % element.xml_tag_name)
                 c.remove_cache()
                 element_processor = element()
             if element_processor is None:
                 logging.error(("Found cached data for \"%s\", but unable to "
-                    "load. Check file \"%s\" for possible errors.") % 
+                    "load. Check file \"%s\" for possible errors. "
+                    "Continuing without cached data") % 
                                 (element.xml_tag_name, c.file_path))
                 element_processor = element()
             else:
@@ -253,16 +176,11 @@ def send_element(element, conf, send_cache, dryrun, verbose, cache_only):
     m.reg_meta_element(element_processor)
     # Build URL
     url = "%s%s" % (conf['host'], element.url)
-    if conf.get('trailing_slash',"").lower() == 'true'\
-        or conf.get('trailing_slash',"").lower() == 'yes':
+    if bool_conf_value(conf.get('trailing_slash',"")):
         url = "%s/" % url
 
     # Check to see if there is any content to transfer in the MetaDoc.
     if m.has_content():
-        # Do not want to send any data if we're doing a dry run.
-        if not dryrun:
-            cli = metahttp.XMLClient(url, conf['key'], conf['cert'])
-
         if verbose:
             print "-" * 70
             print "Connecting to host: %s" % url
@@ -272,47 +190,85 @@ def send_element(element, conf, send_cache, dryrun, verbose, cache_only):
             print "Sent data:\n%s" % ("-" * 70)
             print m.get_xml(pretty=True)
 
-        # Will not recieve any data on a dry run.
         if not dryrun:
-            try:
-                res = cli.send(m.get_xml())
-            except (urllib2.HTTPError, urllib2.URLError) as httperror:
-                logging.error(("Unable to connect to server address \"%s\". "
-                    "Error: %s") % (url, httperror))
-                # Since we're unable to send the document to the server, we will 
-                # cache it so that we can send it at a later date.
+            server_response = utils.send_document(url, 
+                conf['key'], 
+                conf['cert'],
+                m)
+            if server_response is False:
                 if not send_cache:
                     logging.warning("Could not send data to server, "
                         "but running with --no-cache, so data was not cached.")
                 else:
                     Cacher(element.xml_tag_name, m)
             else:
-                if res:
-                    xml_data = res.read()
-                    if verbose:
-                        print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
-                        print xml_data
-                        print "-" * 70
-                    utils.check_response(element.xml_tag_name, 
-                                            m, 
-                                            xml_data,
-                                            send_cache)
-                else:
-                    logging.error(("Server returned an empty response when "
-                        "attempting to send \"%s\". Caching data.") % 
-                        element.xml_tag_name)
-                    # Since we recieved an empty response from the server we have 
-                    # not recieved any reciept for any elements and must cache
-                    # them.
-                    if not send_cache:
-                        logging.warning("No data returned from server, but "
-                            "running with --no-cache, so data was not cached.")
-                    else:
-                        Cacher(element.xml_tag_name, m)
+                if verbose:
+                    print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
+                    print server_response
+                    print "-" * 70
+                utils.check_response(element.xml_tag_name, 
+                                        m, 
+                                        server_response,
+                                        send_cache)
     else:
         if verbose and not cache_only:
             print "No data to send for \"%s\"." % element.xml_tag_name
         logging.info(("No data to send for \"%s\".") % element.xml_tag_name)
+
+def fetch_element(element, conf, verbose):
+        url = "%s%s" % (conf['host'], element.url)
+        if bool_conf_value(conf.get('trailing_slash',"")):
+            url = "%s/" % url
+        if verbose:
+            print "-" * 70
+            print "Connecting to host: %s" % url
+            print "Using key: %s" % conf['key']
+            print "Using certificate: %s" % conf['cert']
+            print "-" * 70
+        server_response = utils.send_document(url, conf['key'], conf['cert'])
+        if server_response is False:
+            sys.stderr.write("Unable to fetch data from \"%s\".\n" %
+                                url)
+            sys.stderr.write("See log for more information.")
+        else:
+            if verbose:
+                print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
+                print server_response
+            data = xmlutils.element_from_string(server_response)
+            if data is False:
+                sys.stderr.write(("Got response from server at url \"%s\", "
+                                "but unable to parse. Error message: %s") % 
+                                (url, e))
+            else:
+                # Check for valid according to DTD:
+                utils.check_version(data.attrib.get("version"))
+                dtd_validation = xmlutils.dtd_validate(data)
+                if len(dtd_validation) == 0:
+                    logging.debug(("Data returned from \"%s\" validated to "
+                                    "DTD.") % url)
+                    found_elements = data.findall(
+                                    element.xml_tag_name
+                                    )
+                    sub_elements = []
+                    for found_element in found_elements:
+                        sub_elements.append(MetaElement.from_xml_element(
+                                            found_element, element)
+                                            )
+                    element.update_handler(sub_elements).process()
+                else:
+                    logging.error(("XML recieved for \"%s\" did not "
+                                "contain valid XML according to DTD.") % 
+                                element.xml_tag_name)
+                    sys.stderr.write(("Received XML document from server "
+                                "on url \"%s\", but did not validate "
+                                "against DTD.\n") % url)
+                    sys.stderr.write("Logging with \"debug\" will show "
+                                "validation errors.")
+                    dtd_errors = ""
+                    for error in dtd_validation:
+                        dtd_errors = "%s\n%s" % (dtd_errors, error)
+                    logging.debug("XML DTD errors: %s" % dtd_errors)
+
 
 def main():
     """Main execution. """
@@ -400,9 +356,9 @@ def main():
             filename=log_file 
             )
     except IOError, ioerr:
-        print "Unable to open log file for writing, please check permissions"
-        print "for %s" % log_file
-        print "Error message: %s" % ioerr
+        sys.stderr.write("Unable to open log file for writing, please check permissions")
+        sys.stderr.write("for %s" % log_file)
+        sys.stderr.write("Error message: %s" % ioerr)
         sys.exit(2)
     
 
@@ -420,11 +376,10 @@ def main():
         write_sample_config()
         return
 
-    for key,value in v:
-        vals[key] = value
+    vals = dict(v)
 
-    if not testConfig(vals):
-        # testConfig() prints/logs any errors
+    if not test_config(vals):
+        # test_config() prints/logs any errors
         return
 
     # ready for main processing.
@@ -440,89 +395,11 @@ def main():
         send_element(element, vals, send_cache, dryrun, verbose, True)
         
 
-    for element in fetch_elements:
-        url = "%s%s" % (vals['host'], element.url)
-        if vals.get('trailing_slash',"").lower() == 'true'\
-            or vals.get('trailing_slash',"").lower() == 'yes':
-            url = "%s/" % url
-        cli = metahttp.XMLClient(url, vals['key'], vals['cert'])
-        if verbose:
-            print "-" * 70
-            print "Connecting to host: %s" % url
-            print "Using key: %s" % vals['key']
-            print "Using certificate: %s" % vals['cert']
-            print "-" * 70
-        try:
-            res = cli.send()
-        except (urllib2.HTTPError, urllib2.URLError) as httperror:
-            logging.error(("Unable to connect to server address \"%s\", "
-                                "error: %s") % (url, httperror))
-            sys.stderr.write("Unable to connect to server address \"%s\".\n" %
-                                url)
-            sys.stderr.write("Error: %s" % httperror)
-        else:
-            if res:
-                xml_data = res.read()
-                if verbose:
-                    print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
-                    print xml_data
-                xml_parse_error = False
-                if lxml:
-                    try:
-                        return_data = etree.fromstring(xml_data)
-                    except etree.XMLSyntaxError, e:
-                        logging.error(("Error parsing XML document from server: "
-                                            "%s") % e)
-                        sys.stderr.write(("Got response from server at url \"%s\", "
-                                        "but unable to parse. Error message: %s") % 
-                                        (url, e))
-                        xml_parse_error = True
-                else:
-                    try:
-                        return_data = etree.fromstring(xml_data)
-                    except ExpatError, e:
-                        logging.error(("Error parsing XML document from server: "
-                                            "%s") % e)
-                        sys.stderr.write(("Got response from server at url \"%s\", "
-                                        "but unable to parse. Error message: %s") % 
-                                        (url, e))
-                        xml_parse_error = True
-                    
-                if not xml_parse_error:
-                    # Check for valid according to DTD:
-                    utils.check_version(return_data.attrib.get("version"))
-                    dtd_validation = utils.dtd_validate(return_data)
-                    if len(dtd_validation) == 0:
-                        logging.debug(("Data returned from \"%s\" validated to "
-                                        "DTD.") % url)
-                        found_elements = return_data.findall(
-                                        element.xml_tag_name
-                                        )
-                        sub_elements = []
-                        for found_element in found_elements:
-                            sub_elements.append(MetaElement.from_xml_element(
-                                                found_element, element)
-                                                )
-                        element.update_handler(sub_elements).process()
-                    else:
-                        logging.error(("XML recieved for \"%s\" did not "
-                                    "contain valid XML according to DTD.") % 
-                                    element.xml_tag_name)
-                        sys.stderr.write(("Received XML document from server "
-                                    "on url \"%s\", but did not validate "
-                                    "against DTD.\n") % url)
-                        sys.stderr.write("Logging with \"debug\" will show "
-                                    "validation errors.")
-                        dtd_errors = ""
-                        for error in dtd_validation:
-                            dtd_errors = "%s\n%s" % (dtd_errors, error)
-                        logging.debug("XML DTD errors: %s" % dtd_errors)
-            else:
-                logging.error(("Recieved empty response from server when "
-                        "attempting to fetch \"%s\".") % element.xml_tag_name)
-                sys.stderr.write(("Received empty response from server on url "
-                            "\"%s\".") % url)
-
+    if not dryrun:
+        for element in fetch_elements:
+            fetch_element(element, vals, verbose)
+    else:
+        logging.info("Doing dryrun, wont send any data")
 
 if __name__ == "__main__":
     main()
