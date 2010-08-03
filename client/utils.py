@@ -14,24 +14,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetaDoc.  If not, see <http://www.gnu.org/licenses/>.
-lxml = False
-
 import logging
 import datetime
 import time
 import re
 import sys
 import os
-try:
-    from lxml import etree
-except ImportError:
-    import xml.etree.ElementTree as etree
-else:
-    lxml = True
+import urllib2
     
 
 import version
 import metadoc
+import metahttp
 from cacher import Cacher
 
 def _singleton(cls):
@@ -190,31 +184,38 @@ def check_version(server_version):
                 "Server version: %s. Client version: %s.") % 
                 (server_version, client_version))
 
-def dtd_validate(xmldoc):
-    """Validates the XML document against the MetaDoc DTD.
 
-    If lxml is unavailable, the function will not be able to do DTD 
-    validation. Will log an error message and return no errors so that 
-    the script can proceed.
 
-    @param xmldoc: XML document
-    @type xmldoc: str
-    @return: list of DTD validation errors.
+def send_document(url, key, cert, metadoc=None):
+    """Sends a document to a specific URL.
+
+    Creates a L{XMLClient} and sends the I{metadoc} data to I{url}.
+
+    @param metadoc: The document to be sent
+    @type metadoc: L{MetaDoc}
+    @param url: URL to send to
+    @type url: str
+    @param key: Path to client key
+    @type key: str
+    @param cert: Path to client cert
+    @type cert: str
 
     """
-    if lxml:
-        SCRIPT_PATH = os.path.abspath(os.path.dirname(sys.argv[0]))
-        dtd_file = os.path.join(SCRIPT_PATH, "MetaDoc.dtd")
-        dtd = etree.DTD(dtd_file)
-        valid = dtd.validate(xmldoc)
-        if valid:
-            return []
+    client = metahttp.XMLClient(url, key, cert)
+    try:
+        if metadoc is None:
+            res = client.send()
         else:
-            ret = []
-            for error in dtd.error_log.filter_from_errors():
-                ret.append(error)
-            return ret
+            res = client.send(metadoc.get_xml())
+    except (urllib2.HTTPError, urllib2.URLError) as httperror:
+        logging.error(("Unable to connect to server address \"%s\". "
+                        "Error: %s") % (url, httperror))
+        return False
     else:
-        logging.warning(("Could not load lxml python library, "
-            "unable to do XML Validation."))
-        return []
+        if res:
+            return res.read()
+        else:
+            logging.error(("Server returned empty response when sending data "
+                            "to \"%s\"") % url)
+            return False
+
