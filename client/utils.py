@@ -35,6 +35,7 @@ import metadoc
 from cacher import Cacher
 
 def _singleton(cls):
+    """ Decorator creating a singleton """
     instances = {}
     def getinstance():
         if cls not in instances:
@@ -49,12 +50,31 @@ class UniqueID(object):
         """ Starts the ID counter at 0. """
         self.last_id = 0
     def get_id(self):
-        """ Increments the ID counter and returns it. """
+        """ Increments the ID counter and returns it. 
+        
+        @return: str on the form "_%d"
+        
+        """
         self.last_id = self.last_id + 1
         return "_%i" % self.last_id
 
 
 def check_response(element_tag, md, xml_data, cache_data=True):
+    """ Wrapper function for the 
+    L{MetaDoc.check_response<metadoc.MetaDoc.check_response>} function that 
+    catches any errors raised and logs them.
+
+    @param element_tag: Element tag name
+    @type element_tag: str
+    @param md: Document sent that created I{xml_data} response
+    @type md: L{MetaDoc}
+    @param xml_data: Data returned from server when I{md} was sent.
+    @type xml_data: str
+    @param cache_data: Indicates whether or not I{md} should be cached
+                       in case of a error in I{xml_data}.
+    @type cache_data: bool
+
+    """
     try:
         md.check_response(xml_data)
     except metadoc.NoReceiptReturnedError, nr:

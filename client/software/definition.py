@@ -21,16 +21,16 @@ from custom.sitesoftware import SiteSoftware
 from software.entries import SoftwareEntry
 
 class Software(metaelement.MetaElement):
-    """ Registers software and packs to XML. """
+    """Registers software and packs to XML. """
     xml_tag_name = "software"
     site_handler = SiteSoftware
     url = "software"
     resend_cache = False
 
     def __init__(self):
-        """ Initializes the MetaElement. 
+        """Initializes the MetaElement. 
 
-        Allowed sub-elements is SoftwareEntry.
+        Allowed sub-elements is L{SoftwareEntry}.
 
         """
         super(Software, self).__init__(Software.xml_tag_name)

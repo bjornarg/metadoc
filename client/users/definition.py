@@ -20,18 +20,17 @@ from custom.updateusers import UpdateUsers
 from users.entries import UserEntry
 
 class Users(metaelement.MetaElement):
-    """ List of users tied to a system. """
+    """List of users tied to a system. """
     xml_tag_name = "users"
     update_handler = UpdateUsers
     url = "users"
 
     def __init__(self, date, fullUpdate = None):
-        """ Defines the users XML tag.
+        """Defines the users XML tag.
         
-        param:
-        date            : Date of oldest record in set
-        fullUpdate      : Whether the set contains a full list or just an 
-                          update. (yes|no)
+        @param date: Date of oldest record in set
+        @param fullUpdate: Whether the set contains a full list or just an 
+                           update. (yes|no)
 
         """
         attributes = {
@@ -43,9 +42,11 @@ class Users(metaelement.MetaElement):
         self.legal_element_types = (UserEntry,)
     def clean_type(self, type):
         """ Checks that `type` has a legal value. """
-        self._clean_allowed_values(type, self.legal_types, 'type', self.xml_tag_name, False)
+        self._clean_allowed_values(type, self.legal_types, 'type', 
+            self.xml_tag_name, False)
         return type
     def clean_fullUpdate(self, fullUpdate):
         """ Checks that `fullUpdate` has a legal value. """
-        self._clean_allowed_values(fullUpdate, self.legal_fullUpdates, 'fullUpdate', self.xml_tag_name, False)
+        self._clean_allowed_values(fullUpdate, self.legal_fullUpdates, 
+            'fullUpdate', self.xml_tag_name, False)
         return fullUpdate

@@ -8,5 +8,6 @@ class SPODTest(metaelement.MetaElement):
     url = "spodtest"
 
     def __init__(self):
+        """Defines the spodtest element """
         super(SPODTest, self).__init__(SPODTest.xml_tag_name)
         self.legal_element_types = (TestCaseEntry,)

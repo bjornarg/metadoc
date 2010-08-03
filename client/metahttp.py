@@ -16,7 +16,6 @@
 # along with MetaDoc.  If not, see <http://www.gnu.org/licenses/>.
 # The API interface
 #
-#!/usr/bin/env python
 # The HTTPSClientAuthHandler is inspired by
 #       http://www.threepillarsoftware.com/soap_client_auth
 #
@@ -24,17 +23,18 @@ import urllib, urllib2, httplib, ssl, socket
 import sys, os
 import ConfigParser
 
-""" Simple client for pushing XML over HTTPS. """
+"""Simple client for pushing XML over HTTPS. """
 class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
-    """ HTTPSClientAuthHandler extends HTTPSHandler
+    """HTTPSClientAuthHandler extends HTTPSHandler
 
     Client code for a http-handler capable of SSL and X.509 authN
 
     """
     def __init__(self, key, cert):
-        """ Init HTTPSClientAuthHandler
-        key: the private key
-        cert: the certificate
+        """Init HTTPSClientAuthHandler
+
+        @param key: the private key
+        @param cert: the certificate
 
         both to use with the AuthN/AuthZ
 
@@ -44,11 +44,11 @@ class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
         self.cert = cert
 
     def https_open(self, req):
-        """ Open the connection. """
+        """Open the connection. """
         return self.do_open(self.get_conncetion, req)
 
     def get_conncetion(self, host, timeout=300):
-        """ Get the connection. """
+        """Get the connection. """
         SCRIPT_PATH = os.path.abspath(os.path.dirname(sys.argv[0]))
         conf = ConfigParser.ConfigParser()
         conf.read("%s/%s" % (SCRIPT_PATH, "metadoc.conf"))
@@ -61,7 +61,7 @@ class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
                                        ca_certs=ca_certs)
 
 class HTTPSAuthServerConnection(httplib.HTTPSConnection):
-    """ HTTPSAuthServerConnection extends httplib.HTTPConnection.
+    """HTTPSAuthServerConnection extends httplib.HTTPConnection.
     
     Code for enabling server certificate verification in an SSL tunnel.
 
@@ -86,9 +86,9 @@ class HTTPSAuthServerConnection(httplib.HTTPSConnection):
 
 
 class XMLClient:
-    """ Send XML over HTTPS + X.509 authN channel. """
+    """Send XML over HTTPS + X.509 authN channel. """
     def __init__(self, addr, key, cert):
-        """ XMLClient()
+        """XMLClient()
 
         addr: the address we are going to send data to
         key, cert: keypair to use for authentication.
@@ -104,10 +104,10 @@ class XMLClient:
         self.url = addr
 
     def send(self, xml_data = None):
-        """ Send XML-data to the host.
+        """Send XML-data to the host.
 
-        param:
-        xml_data: The data to send to the site.
+        @param xml_data: The data to send to the site.
+        @type xml_data: str
 
         The result is returned raw without parsing it.
 

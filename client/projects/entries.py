@@ -19,19 +19,18 @@ import metaelement
 from users.entries import UserEntry
 
 class ProjectEntry(metaelement.MetaElement):
-    """ Information about each specific project. """
+    """Information about each specific project. """
     xml_tag_name = "project_entry"
     
     def __init__(self, name, account_nmb, status=None, valid_from=None, 
             abbrev=None, valid_to=None, responsible_person=None, gid=None):
-        """ Defines the project_entry XML tag.
+        """Defines the project_entry XML tag.
 
-        param:
-        name            : Name of the project
-        gid             : Group-id of the project
-        valid_from      : From when the project is valid
-        valid_to        : When the project should terminate
-        status          : Status of the project (new|existing|delete)
+        @param name: Name of the project
+        @param gid: Group-id of the project
+        @param valid_from: From when the project is valid
+        @param valid_to: When the project should terminate
+        @param status: Status of the project (new|existing|delete)
 
         """
         attributes = {
@@ -54,27 +53,28 @@ class ProjectEntry(metaelement.MetaElement):
         self.legal_element_types = (RemarksEntry, DescriptionEntry,UserEntry,)
 
     def get_remarks(self):
-        """ Returns remarks, if any. """
+        """Returns remarks, if any. """
         for el in self.sub_elements:
             if isinstance(el, RemarksEntry):
                 return el.text
         return None
 
     def get_description(self):
-        """ Returns description, if any. """
+        """Returns description, if any. """
         for el in self.sub_elements:
             if isinstance(el, DescriptionEntry):
                 return el.text
         return None
 
     def get_user_list(self):
+        """Returns a list of users for the project. """
         user_list = []
         for el in self.sub_elements:
             if isinstance(el, UserEntry):
                 user_list.append(el)
         return user_list
     def clean_gid(self, gid):
-        """ Converts gid to string if int. If neither string nor int, 
+        """Converts gid to string if int. If neither string nor int, 
         raise an IllegalAttributeTypeError.
 
         """
