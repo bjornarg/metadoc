@@ -1,5 +1,6 @@
 *.pem
 *.crt
+*.key
 *.pyc
 *.db2
 *.sql/apache/test.xml
