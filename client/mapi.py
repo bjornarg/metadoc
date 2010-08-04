@@ -363,7 +363,7 @@ def main():
     
 
     conf = ConfigParser.ConfigParser()
-    conf.read("%s/%s" % (SCRIPT_PATH, "metadoc.conf"))
+    conf.read(os.path.join(SCRIPT_PATH, "metadoc.conf"))
     v = []
     vals = {}
     try:
