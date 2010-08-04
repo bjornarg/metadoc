@@ -182,7 +182,7 @@ class MetaElement(object):
             self.add_element(element)
 
     def remove_element(self, element):
-        """ Removes an element from list of sub elements. """
+        """Removes an element from list of sub elements. """
         if element in self.sub_elements:
             try:
                 self.sub_elements.remove(element)
@@ -293,7 +293,18 @@ class MetaElement(object):
                     element)
 
     def _clean_types(self, value, allowed_types, attribute_name, element):
-        """ Checks that `value` is one of `allowed_types`. """
+        """Checks that to see if a value is an allowed type.
+
+        Will raise an L{IllegalAttributeTypeError} if I{value} is not an 
+        instance of any elements i I{allowed_types}.
+        
+        @param value: The value to be checked.
+        @param allowed_types: Allowed values of I{value}.
+        @param attribute_name: Name of the attribute.
+        @param element: Name of the element
+        @return: bool
+
+        """
         try:
             iter(allowed_types)
         except TypeError:
@@ -321,7 +332,16 @@ class MetaElement(object):
 
     def _clean_allowed_values(self, value, allowed_values, attribute_name, 
             element, case_sensitive = True):
-        """ Checks value against a list of allowed values. """
+        """Checks value against a list of allowed values. 
+        
+        @param value: Value of the attribute
+        @param allowed_values: Allowed values of attribute
+        @param attribute_name: Name of the attribute
+        @param element: Name of the element
+        @param case_sensitive: Whether the match will be case sensitive or not
+        @type case_sensitive: bool
+        
+        """
         valid = True
         if case_sensitive:
             if value not in allowed_values:
@@ -340,10 +360,17 @@ class MetaElement(object):
 
     @staticmethod
     def from_xml_element(xml_element, element_class):
-        """ Creates a MetaElement from an etree.Element instance. 
+        """Creates a MetaElement from an etree.Element instance. 
         
         Recursively checks for sub-elements from legal sub-classes.
 
+        @param xml_element: The XML element to be converted.
+        @type xml_element: etree.Element
+        @param element_class: The class to convert I{xml_element} to.
+        @type element_class: L{MetaElement} sub-class
+        @return: An instance of I{element_class} describing I{xml_element}, or 
+                 None if unable to convert.
+        
         """
         try:
             element = element_class(**xml_element.attrib)
@@ -372,15 +399,15 @@ class MetaElement(object):
 # Error classes
 
 class Error(Exception):
-    """ Base Error class for MetaElements. """
+    """Base Error class for MetaElements. """
     pass
 
 class IllegalAttributeError(Error):
-    """ Base class for problems with attributes. """
+    """Base class for problems with attributes. """
     pass
 
 class IllegalAttributeValueError(IllegalAttributeError):
-    """ Error given when an illegal value is passed as a value for an 
+    """Error given when an illegal value is passed as a value for an 
     attribute.
 
     """
@@ -396,7 +423,7 @@ class IllegalAttributeValueError(IllegalAttributeError):
 
 
 class IllegalAttributeTypeError(IllegalAttributeError):
-    """ Error given when an attribute is passed a value in an illegal 
+    """Error given when an attribute is passed a value in an illegal 
     format. 
 
     """
@@ -413,7 +440,7 @@ class IllegalAttributeTypeError(IllegalAttributeError):
                                                     self.used_type.__name__)
 
 class IllegalElementError(Error):
-    """ Error given when attempting to add a sub-element of a type that is not
+    """Error given when attempting to add a sub-element of a type that is not
     allowed by the element definition.
 
     """
@@ -428,5 +455,5 @@ class IllegalElementError(Error):
                                     self.allowed_sub_elements)
 
 class NotImplementedError(Error):
-    """ Error given when a call to an abstract function is made. """
+    """Error given when a call to an abstract function is made. """
     pass

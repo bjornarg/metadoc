@@ -64,7 +64,7 @@ class Cacher(object):
                 cache_file.close()
 
     def get_cache(self):
-        """ 
+        """Fetches any cached data for the element type. 
         
         @return: etree.Element of self.element_type, or None if 
                     cache does not exist.
@@ -90,7 +90,7 @@ class Cacher(object):
         return element.find(self.element_type)
 
     def remove_cache(self):
-        """ Removes the file containing the cached data. 
+        """Removes the file containing the cached data. 
         
         @return: Boolean indicating successful removal of file.
 

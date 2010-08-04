@@ -23,7 +23,7 @@ class AllocationEntry(metaelement.MetaElement):
     xml_tag_name = "all_entry"
 
     def __init__(self, account_nmb, volume, metric, all_class, period):
-        """ Defines attributes for all_entry XML elements. 
+        """Defines attributes for all_entry XML elements. 
         
         @param account_nmb: Account number for allocation.
         @type account_nmb: String

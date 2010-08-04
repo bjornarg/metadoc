@@ -103,6 +103,15 @@ def test_config(vals):
     return True
 
 def bool_conf_value(val, default=False):
+    """Attempts to convert a string value from configuration to a boolean.
+
+    @param val: Configuration value
+    @type val: str
+    @param default: Default return value if unable to properly convert.
+    @type default bool
+    @return: bool
+
+    """
     if val.lower() in ('true', 'yes'):
         return True
     elif val.lower() in ('false', 'no'):

@@ -60,7 +60,7 @@ class ConfigEntry(metaelement.MetaElement):
         self._clean_allowed_values(element, self.legal_element, 'element', self.xml_tag_name, False)
         return element
     def clean_volume(self, volume):
-        """ Converts volume to string if integer, and checks that the passed 
+        """Converts volume to string if integer, and checks that the passed 
         variable is either string or int.
 
         @param volume: Amount of metric for element.

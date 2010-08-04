@@ -62,7 +62,7 @@ class ResourceUpEntry(metaelement.MetaElement):
         return self._clean_date(dateUp, 'dateUp', self.xml_tag_name)
 
 class ResourceDownEntry(metaelement.MetaElement):
-    """ Describes a resourceDown entry. """
+    """Describes a resourceDown entry. """
     xml_tag_name = "resourceDown"
 
     def __init__(self, reason, dateDown, dateUp, shareDown, remarks=None):
@@ -109,7 +109,7 @@ class ResourceDownEntry(metaelement.MetaElement):
         """
         return self._clean_date(dateDown, 'dateDown', self.xml_tag_name)
     def clean_dateUp(self, dateUp):
-        """ Checks that dateUp is RFC3339 String or converts date, datetime,
+        """Checks that dateUp is RFC3339 String or converts date, datetime,
         int or flat to RFC3339 String. 
         
         
@@ -122,7 +122,7 @@ class ResourceDownEntry(metaelement.MetaElement):
         """
         return self._clean_date(dateUp, 'dateUp', self.xml_tag_name)
     def clean_shareDown(self, share_down):
-        """ Checks that shareDown is string or converts from int or float
+        """Checks that shareDown is string or converts from int or float
         to string. 
 
         @param share_down: Share of resource that is down.
