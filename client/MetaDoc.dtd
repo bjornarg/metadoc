@@ -123,7 +123,7 @@
 <!--        clarity.                                            -->
 <!--                                                            -->
 <!-- ########################################################## -->
-<!ELEMENT projects (project_entry+)>
+<!ELEMENT projects (project_entry*)>
 <!ATTLIST projects
       date          CDATA           #REQUIRED
       fullUpdate    (yes|no)        #IMPLIED>
@@ -174,7 +174,7 @@
 <!--                                                            -->
 <!--                                                            -->
 <!-- ########################################################## -->
-<!ELEMENT allocations (all_entry+)>
+<!ELEMENT allocations (all_entry*)>
 <!ELEMENT all_entry EMPTY>
 <!ATTLIST all_entry
       account_nmb   CDATA           #REQUIRED
