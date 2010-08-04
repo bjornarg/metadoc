@@ -47,7 +47,8 @@ class AllocationEntry(metaelement.MetaElement):
         }
         self.legal_metric = ('hours', 'mb',)
         self.legal_all_class = ('pri', 'nonpri',)
-        super(AllocationEntry, self).__init__(AllocationEntry.xml_tag_name, attributes)
+        super(AllocationEntry, self).__init__(AllocationEntry.xml_tag_name, 
+            attributes)
 
     def clean_metric(self, metric):
         """Checks for legal values of metric. 
@@ -59,7 +60,8 @@ class AllocationEntry(metaelement.MetaElement):
         @return: String
         
         """
-        self._clean_allowed_values(metric, self.legal_metric, 'metric', self.xml_tag_name, False)
+        self._clean_allowed_values(metric, self.legal_metric, 'metric', 
+            self.xml_tag_name, False)
         return metric
 
     def clean_all_class(self, all_class):
@@ -72,6 +74,6 @@ class AllocationEntry(metaelement.MetaElement):
         @return: String
 
         """
-        self._clean_allowed_values(all_class, self.legal_all_class, 'all_class', self.xml_tag_name, False)
+        self._clean_allowed_values(all_class, self.legal_all_class, 
+            'all_class', self.xml_tag_name, False)
         return all_class
-            
