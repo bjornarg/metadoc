@@ -229,7 +229,7 @@ def fetch_element(element, conf, verbose):
     if server_response is False:
         sys.stderr.write("Unable to fetch data from \"%s\".\n" %
                             url)
-        sys.stderr.write("See log for more information.")
+        sys.stderr.write("See log for more information.\n")
     else:
         if verbose:
             print "%s\nRecieved data:\n%s" % ("-" * 70, "-" * 70)
@@ -237,7 +237,7 @@ def fetch_element(element, conf, verbose):
         data = xmlutils.element_from_string(server_response)
         if data is False:
             sys.stderr.write(("Got response from server at url \"%s\", "
-                            "but unable to parse. Error message: %s") % 
+                            "but unable to parse. \nError message: %s\n") % 
                             (url, e))
         else:
             # Check for valid according to DTD:
@@ -263,7 +263,7 @@ def fetch_element(element, conf, verbose):
                             "on url \"%s\", but did not validate "
                             "against DTD.\n") % url)
                 sys.stderr.write("Logging with \"debug\" will show "
-                            "validation errors.")
+                            "validation errors.\n")
                 dtd_errors = ""
                 for error in dtd_validation:
                     dtd_errors = "%s\n%s" % (dtd_errors, error)
@@ -356,9 +356,10 @@ def main():
             filename=log_file 
             )
     except IOError, ioerr:
-        sys.stderr.write("Unable to open log file for writing, please check permissions")
-        sys.stderr.write("for %s" % log_file)
-        sys.stderr.write("Error message: %s" % ioerr)
+        sys.stderr.write(("Unable to open log file for writing, "
+            "please check permissions"))
+        sys.stderr.write("for \"%s\".\n" % log_file)
+        sys.stderr.write("Error message: %s\n" % ioerr)
         sys.exit(2)
     
 
