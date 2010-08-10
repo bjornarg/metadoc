@@ -357,8 +357,8 @@ def main():
             )
     except IOError, ioerr:
         sys.stderr.write(("Unable to open log file for writing, "
-            "please check permissions"))
-        sys.stderr.write("for \"%s\".\n" % log_file)
+            "please check permissions "
+            "for \"%s\".\n") % log_file)
         sys.stderr.write("Error message: %s\n" % ioerr)
         sys.exit(2)
     
