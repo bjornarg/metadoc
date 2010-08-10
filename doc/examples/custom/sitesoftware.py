@@ -23,9 +23,10 @@ from software.entries import SoftwareEntry
 
 class SiteSoftware(MetaOutput):
     def populate(self):
-        """ Function to populate self.items with SoftwareEntry.
+        """Function to populate I{self.items} with L{SoftwareEntry}.
 
-        Customize this function to fit to your site.
+        Uses the C{module} command to list installed modules. Parses 
+        this list and uses them as installed 
 
         """
         MODULES_PATH = "/usr/local/Modules/3.2.6/bin/modulecmd"
@@ -50,4 +51,7 @@ class SiteSoftware(MetaOutput):
                 if prog_parts[0] not in programs.keys():
                         programs[prog_parts[0]] = set()
                 programs[prog_parts[0]].add("/".join(prog_parts[1:]))
-        self.items.extend(map(SoftwareEntry, programs.keys(), programs.vals()))
+        for program in programs:
+            for version in programs[program]:
+                self.items.append(SoftwareEntry(program, version))
+
