@@ -143,7 +143,7 @@ def get_element_processor(element, send_cache, verbose, dryrun):
 def send_element(element, conf, send_cache, dryrun, verbose, cache_only):
     """Attempts to gather and send information defined by element to server.
 
-    If send_cache or dryrun is False, cache will be ignored.
+    If send_cache is True or dryrun is False, cache will be ignored.
     If cache_only is True, only cache is checked and no new data is gathered.
 
 
@@ -332,7 +332,7 @@ def main():
             dryrun = True
         elif opt in ('-l', '--loglevel'):
             log_level = LOG_LEVELS.get(arg.lower(), logging.WARNING)
-        elif opt in ('-l', '--no-cache'):
+        elif opt in ('-n', '--no-cache'):
             send_cache = False
         elif opt == '--send-all':
             send_elements.extend(possible_send_elements)
