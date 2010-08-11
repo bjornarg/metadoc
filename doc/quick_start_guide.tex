@@ -173,6 +173,22 @@ logs error messages.
 Fetches user, project and allocation data once a week. Makes sure the script
 executes quietly and logs warning messages.
 
+\subsection{Using with modules}
+If there is a need to load any modules through the \texttt{module} program,
+a custom bash script will have to be created in order to first load the module,
+then execute \texttt{mapi.py}. 
+
+Below is an example of a bash script where the module \texttt{python} is loaded
+before \texttt{mapi.py} is run.
+
+\begin{verbatim}
+module load python
+/path/to/metadoc/client/mapi.py -upa -q -l warning
+\end{verbatim}
+
+This bash script would then be added to the crontab instead of \texttt{mapi.py}
+directly.
+
 \section{Logging}
 The MetaDoc client logs to \texttt{/var/log/mapi/}, log files follow the naming
 schema \texttt{metadoc.client.YYYY-mm-dd.log}. The amount of information logged
