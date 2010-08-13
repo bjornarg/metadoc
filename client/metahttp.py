@@ -80,7 +80,7 @@ class HTTPSAuthServerConnection(httplib.HTTPSConnection):
         self.ca_certs = ca_certs
     def connect(self):
         sock = socket.create_connection((self.host, self.port), self.timeout)
-        if self._tunnel_host:
+        if hasattr(self, "_tunnel_host") and self._tunnel_host:
             self.sock = sock
             self._tunnel()
         self.sock = ssl.wrap_socket(sock, keyfile=self.key_file, 
